@@ -10,7 +10,7 @@ part "client/helloView.rsp.dart";
 //URI mapping
 var _mapping = {
   "/server-info": serverInfo,
-  "/": helloView
+  "/hello": helloView
 };
 
 void serverInfo(HttpConnect connect) {

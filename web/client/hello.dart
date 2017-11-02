@@ -4,6 +4,7 @@ import "dart:html";
 import "dart:convert" show JSON;
 
 void main() {
+  print('test desu');
   document.querySelector("#hi").onClick
     .listen((e) {
       HttpRequest.request("/server-info")

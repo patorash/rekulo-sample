@@ -28,7 +28,7 @@ Future helloView(HttpConnect connect) async {
 
 
   response.write(""".</p>
-    <p>Please refer to 
+    <p>Please refer to
   <a href="https://github.com/rikulo/stream/tree/master/example/hello-rsp">Github</a> for how it is implemented.</a>
   </body>
 </html>""");

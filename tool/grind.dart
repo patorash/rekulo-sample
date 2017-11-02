@@ -18,29 +18,32 @@ test() => new TestRunner().testAsync();
 clean() => defaultClean();
 
 @DefaultTask()
-serve() {
-  var pid;
-  getStreamProcess().then((Process process) {
-    pid = process.pid;
-    stdout.addStream(process.stdout);
-    stderr.addStream(process.stderr);
-  });
+serve() async {
+  Process process = await getStreamProcess();
+  stdout.addStream(process.stdout);
+  stderr.addStream(process.stderr);
 
   // rspファイルの変更を検知してコンパイルする
   var watcher = new DirectoryWatcher(path.absolute('web/client'));
-  watcher.events.listen((event) {
+  watcher.events.listen((event) async {
     String secondExtension = path.extension(path.basenameWithoutExtension(event.path));
     if (secondExtension == '.rsp') {
+      // stdout.write(event.path);
       rspc.compileFile(event.path);
       // ファイルのコンパイル後にrekulo streamを再起動させる
-      // TODO: 標準出力とかのあたりがまともに動いてない
-      if (Process.killPid(pid, ProcessSignal.SIGTERM)) {
-        getStreamProcess().then((Process process) {
-          pid = process.pid;
-        });
+      // TODO: 標準出力とかのあたりがまともに動いてないかも…
+      if (process.kill(ProcessSignal.SIGTERM)) {
+        process = await getStreamProcess();
       }
+    }
+    switch (path.extension(event.path)) {
+      case '.dart':
+        Dart2js.compileAsync(new File(event.path));
+        break;
+
+      default:
     }
   });
 }
 
-getStreamProcess() => Process.start('dart', ['web/webapp/main.dart']);
+getStreamProcess() async => Process.start('dart', ['web/webapp/main.dart']);
