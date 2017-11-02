@@ -12,7 +12,7 @@ Future helloView(HttpConnect connect) async {
 <html>
   <head>
     <title>Stream: Hello RSP</title>
-    <link href="styles.css" rel="stylesheet" type="text/css" />
+    <link href="/css/styles.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <h1>Stream: Hello RSP</h1>

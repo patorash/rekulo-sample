@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
@@ -22,32 +23,75 @@ clean() => defaultClean();
 compile() {
   dart2js(new Directory(path.absolute('web/client/js')));
   sass2css(new Directory(path.absolute('web/client/css')));
+  compileRsp(new Directory(path.absolute('web/client')));
 }
 
-void dart2js(Directory directory) {
-  directory.exists().then((bool exists) {
-    directory.list().listen((FileSystemEntity fse) {
-      if (fse is Directory) {
+/// dartをjsにコンパイルする
+/// 
+/// [file]がDirectoryだった場合は、再帰的に呼び出す。
+/// Fileだったら非同期でコンパイルする。
+void dart2js(FileSystemEntity file) {
+  file.exists().then((bool exists) {
+    if (file is Directory) {
+      Directory dir = file;
+      dir.list().listen((FileSystemEntity fse) {
         dart2js(fse);
-      } else if (fse is File && fse.path.endsWith('.dart')) {
-        Dart2js.compileAsync(fse);
-      }
-    });
+      });
+    } else if (file is File && file.path.endsWith('.dart')) {
+      runZoned((){
+        Dart2js.compileAsync(file);
+      }, onError: (e) {
+        log(e.toString());
+      });
+    }
   });
 }
 
-sass2css(Directory directory) {
-  directory.exists().then((bool exists) {
-    directory.list().listen((FileSystemEntity fse) {
-      if (fse is Directory) {
+/// sassをcssにコンパイルする
+/// 
+/// [file]がDirectoryだった場合は、再帰的に呼び出す。
+/// Fileだったら非同期でコンパイルする。
+void sass2css(FileSystemEntity file) {
+  file.exists().then((bool exists) {
+    if (file is Directory) {
+      Directory dir = file;
+      dir.list().listen((FileSystemEntity fse) {
         sass2css(fse);
-      } else if (fse is File &&
-        (fse.path.endsWith('.scss') || fse.path.endsWith('.sass'))) {
-        new File("${path.withoutExtension(fse.path)}.css").writeAsString(
-          sass.compile(fse.path),
-          mode: FileMode.WRITE_ONLY);
+      });
+    } else if (file is File &&
+              (file.path.endsWith('.scss') || file.path.endsWith('.sass'))) {
+      runZoned((){
+        new File("${path.withoutExtension(file.path)}.css").writeAsString(
+          sass.compile(file.path),
+          mode: FileMode.WRITE_ONLY
+        );
+      }, onError: (e) {
+        log(e.toString());
+      });
+    }
+  });
+}
+
+/// RSPファイルをコンパイルする
+/// 
+/// [file]がDirectoryだった場合は、再帰的に呼び出す。
+/// Fileだったらコンパイルする。
+void compileRsp(FileSystemEntity file) {
+    file.exists().then((bool exists) {
+    if (file is Directory) {
+      Directory dir = file;
+      dir.list().listen((FileSystemEntity fse) {
+        compileRsp(fse);
+      });
+    } else if (file is File) {
+      if (file.path.endsWith('.rsp.html')) {
+        runZoned(() {
+          rspc.compileFile(file.path);
+        }, onError: (e) {
+          log(e.toString());
+        });
       }
-    });
+    }
   });
 }
 
@@ -61,28 +105,19 @@ serve() async {
   // rspファイルの変更を検知してコンパイルする
   var watcher = new DirectoryWatcher(path.absolute('web/client'));
   watcher.events.listen((event) async {
-    String secondExtension = path.extension(path.basenameWithoutExtension(event.path));
-    if (secondExtension == '.rsp') {
-      // stdout.write(event.path);
-      rspc.compileFile(event.path);
+    if (event.path.endsWith('.rsp.html')) {
+      compileRsp(new File(event.path));
       // ファイルのコンパイル後にrekulo streamを再起動させる
       // TODO: 標準出力とかのあたりがまともに動いてないかも…
       if (process.kill(ProcessSignal.SIGTERM)) {
         process = await getStreamProcess();
       }
     }
-    switch (path.extension(event.path)) {
-      case '.dart':
-        Dart2js.compileAsync(new File(event.path));
-        break;
-
-      case '.scss':
-        new File("${path.withoutExtension(event.path)}.css").writeAsString(
-          sass.compile(event.path, color: true),
-          mode: FileMode.WRITE_ONLY
-        );
-        break;
-      default:
+    if (event.path.endsWith('.dart')) {
+      dart2js(new File(event.path));
+    }
+    if (event.path.endsWith('.scss') || event.path.endsWith('.sass')) {
+      sass2css(new File(event.path));
     }
   });
 }
