@@ -18,7 +18,41 @@ test() => new TestRunner().testAsync();
 @Task()
 clean() => defaultClean();
 
+@Task()
+compile() {
+  dart2js(new Directory(path.absolute('web/client/js')));
+  sass2css(new Directory(path.absolute('web/client/css')));
+}
+
+void dart2js(Directory directory) {
+  directory.exists().then((bool exists) {
+    directory.list().listen((FileSystemEntity fse) {
+      if (fse is Directory) {
+        dart2js(fse);
+      } else if (fse is File && fse.path.endsWith('.dart')) {
+        Dart2js.compileAsync(fse);
+      }
+    });
+  });
+}
+
+sass2css(Directory directory) {
+  directory.exists().then((bool exists) {
+    directory.list().listen((FileSystemEntity fse) {
+      if (fse is Directory) {
+        sass2css(fse);
+      } else if (fse is File &&
+        (fse.path.endsWith('.scss') || fse.path.endsWith('.sass'))) {
+        new File("${path.withoutExtension(fse.path)}.css").writeAsString(
+          sass.compile(fse.path),
+          mode: FileMode.WRITE_ONLY);
+      }
+    });
+  });
+}
+
 @DefaultTask()
+@Depends(compile)
 serve() async {
   Process process = await getStreamProcess();
   stdout.addStream(process.stdout);
