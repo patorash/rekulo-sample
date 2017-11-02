@@ -3,6 +3,7 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 import 'package:stream/rspc.dart' as rspc;
+import 'package:sass/sass.dart' as sass;
 
 main(args) => grind(args);
 
@@ -41,6 +42,12 @@ serve() async {
         Dart2js.compileAsync(new File(event.path));
         break;
 
+      case '.scss':
+        new File("${path.withoutExtension(event.path)}.css").writeAsString(
+          sass.compile(event.path, color: true),
+          mode: FileMode.WRITE_ONLY
+        );
+        break;
       default:
     }
   });
