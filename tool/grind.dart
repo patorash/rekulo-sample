@@ -38,9 +38,8 @@ void dart2js(FileSystemEntity file) {
         dart2js(fse);
       });
     } else if (file is File && file.path.endsWith('.dart')) {
-      runZoned((){
-        Dart2js.compileAsync(file);
-      }, onError: (e) {
+      runZoned(() => Dart2js.compileAsync(file)
+      , onError: (e) {
         log(e.toString());
       });
     }
@@ -60,12 +59,10 @@ void sass2css(FileSystemEntity file) {
       });
     } else if (file is File &&
               (file.path.endsWith('.scss') || file.path.endsWith('.sass'))) {
-      runZoned((){
-        new File("${path.withoutExtension(file.path)}.css").writeAsString(
+      runZoned(() => new File("${path.withoutExtension(file.path)}.css").writeAsString(
           sass.compile(file.path),
           mode: FileMode.WRITE_ONLY
-        );
-      }, onError: (e) {
+        ), onError: (e) {
         log(e.toString());
       });
     }
@@ -85,9 +82,8 @@ void compileRsp(FileSystemEntity file) {
       });
     } else if (file is File) {
       if (file.path.endsWith('.rsp.html')) {
-        runZoned(() {
-          rspc.compileFile(file.path);
-        }, onError: (e) {
+        runZoned(() => rspc.compileFile(file.path)
+        , onError: (e) {
           log(e.toString());
         });
       }
@@ -103,21 +99,30 @@ serve() async {
   stderr.addStream(process.stderr);
 
   // rspファイルの変更を検知してコンパイルする
-  var watcher = new DirectoryWatcher(path.absolute('web/client'));
-  watcher.events.listen((event) async {
+  var clientWatcher = new DirectoryWatcher(path.absolute('web/client'));
+  clientWatcher.events.listen((event) async {
     if (event.path.endsWith('.rsp.html')) {
       compileRsp(new File(event.path));
-      // ファイルのコンパイル後にrekulo streamを再起動させる
-      // TODO: 標準出力とかのあたりがまともに動いてないかも…
-      if (process.kill(ProcessSignal.SIGTERM)) {
-        process = await getStreamProcess();
-      }
     }
     if (event.path.endsWith('.dart')) {
       dart2js(new File(event.path));
     }
     if (event.path.endsWith('.scss') || event.path.endsWith('.sass')) {
       sass2css(new File(event.path));
+    }
+  });
+
+  var serverWatcher = new DirectoryWatcher(path.absolute('web/webapp'));
+  serverWatcher.events.listen((event) async {
+    if (event.path.endsWith('.dart')) {
+      log("Server: file change detected.");
+      // ファイルのコンパイル後にrekulo streamを再起動させる
+      // TODO: 標準出力とかのあたりがまともに動いてないかも…
+      log("Server: kill process...");
+      if (process.kill(ProcessSignal.SIGTERM)) {
+        process = await getStreamProcess();
+        log("Server: restart done.");
+      }
     }
   });
 }
