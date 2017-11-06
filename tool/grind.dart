@@ -21,9 +21,13 @@ clean() => defaultClean();
 
 @Task()
 compile() {
-  dart2js(new Directory(path.absolute('web/client/js')));
-  sass2css(new Directory(path.absolute('web/client/css')));
-  compileRsp(new Directory(path.absolute('web/client')));
+  // pub serveにコンパイルを任せることにしたのでコメントアウトした
+  // dart2js(new Directory(path.absolute('web/client/assets/js')));
+  // sass2css(new Directory(path.absolute('web/client/assets/css')));
+  // compileRsp(new Directory(path.absolute('web/client')));
+
+  // compileRspでコンパイルを行うとエラーが起きる場合があったのでやめた
+  runAsync('dart', arguments: ['build.dart']);
 }
 
 /// dartをjsにコンパイルする
@@ -102,14 +106,15 @@ serve() async {
   var clientWatcher = new DirectoryWatcher(path.absolute('web/client'));
   clientWatcher.events.listen((event) async {
     if (event.path.endsWith('.rsp.html')) {
-      compileRsp(new File(event.path));
+      runAsync('dart', arguments: ['build.dart']);
     }
-    if (event.path.endsWith('.dart')) {
-      dart2js(new File(event.path));
-    }
-    if (event.path.endsWith('.scss') || event.path.endsWith('.sass')) {
-      sass2css(new File(event.path));
-    }
+    // pub serveにコンパイルを任せることにしたのでコメントアウトした
+    // if (event.path.endsWith('.dart')) {
+    //   dart2js(new File(event.path));
+    // }
+    // if (event.path.endsWith('.scss') || event.path.endsWith('.sass')) {
+    //   sass2css(new File(event.path));
+    // }
   });
 
   var serverWatcher = new DirectoryWatcher(path.absolute('web/webapp'));
