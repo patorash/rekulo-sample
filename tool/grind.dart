@@ -98,6 +98,8 @@ void compileRsp(FileSystemEntity file) {
 @DefaultTask()
 @Depends(compile)
 serve() async {
+  runAsync('pub', arguments: ['serve', 'web/client', '--port=8000']);
+
   Process process = await getStreamProcess();
   stdout.addStream(process.stdout);
   stderr.addStream(process.stderr);
