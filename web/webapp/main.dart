@@ -6,7 +6,6 @@ import 'dart:async';
 import "dart:convert" show JSON;
 import "package:stream/stream.dart";
 import "package:rikulo_commons/io.dart" show getContentType;
-import 'package:path/path.dart' as path;
 import 'package:stream_sample/pub_serve_proxy.dart';
 
 part "client/helloView.rsp.dart";
