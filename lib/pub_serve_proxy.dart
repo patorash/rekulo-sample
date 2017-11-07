@@ -1,5 +1,3 @@
-library stream_sample;
-
 import 'dart:io';
 import 'dart:async';
 import "package:stream/stream.dart";

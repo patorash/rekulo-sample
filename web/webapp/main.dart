@@ -1,5 +1,4 @@
 //Sample of Stream: Hello Dynamic Contents
-library stream_sample;
 
 import 'dart:io';
 import 'dart:async';
