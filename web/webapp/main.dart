@@ -15,7 +15,8 @@ var proxy = new PubServeProxy('localhost', 8000);
 var _mapping = {
   "/server-info": serverInfo,
   "/hello": helloView,
-  "/assets/.*": proxy.forward,
+  "/css/.*": proxy.forward,
+  "/js/.*": proxy.forward,
   "/packages/.*": proxy.forward
 };
 

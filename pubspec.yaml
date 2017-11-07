@@ -25,7 +25,7 @@ dev_dependencies:
 transformers:
 - angular:
     entry_points:
-    - web/client/main.dart
+    - web/client/js/main.dart
 - dart_to_js_script_rewriter
 - dart_sass_transformer:
     executable: sassc
