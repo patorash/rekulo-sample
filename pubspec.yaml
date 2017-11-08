@@ -13,6 +13,7 @@ environment:
 dependencies:
   stream: any
   angular: ^4.0.0
+  angular_forms: ^1.0.0
 
 dev_dependencies:
   browser: ^0.10.0
