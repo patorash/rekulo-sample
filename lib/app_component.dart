@@ -1,22 +1,30 @@
+import 'dart:async';
 import 'package:angular/angular.dart';
-import 'package:angular_forms/angular_forms.dart';
 import 'src/hero.dart';
-import 'src/mock_heros.dart';
+import 'src/hero_detail_component.dart';
+import 'src/hero_service.dart';
 
 @Component(
   selector: 'my-app',
   templateUrl: 'app_component.html',
   styleUrls: const ['app_component.css'],
-  directives: const [CORE_DIRECTIVES, formDirectives]
+  directives: const [CORE_DIRECTIVES, HeroDetailComponent],
+  providers: const[HeroService]
 )
-class AppComponent {
+class AppComponent implements OnInit {
   final title = 'Tour of Heros';
-  Hero hero = new Hero(1, 'Windstrom');
-  List<Hero> heros = mockHeroes;
+  List<Hero> heroes;
   Hero selectedHero;
+  final HeroService _heroService;
 
-  onSelect(Hero hero) {
-    selectedHero = hero;
-    print(selectedHero.name);
+  AppComponent(this._heroService);
+
+  void ngOnInit() => getHeroes();
+
+  Future<Null> getHeroes() async {
+    // heroes = await _heroService.getHeroes();
+    heroes = await _heroService.getHeroesSlowly();
   }
+
+  void onSelect(Hero hero) => selectedHero = hero;
 }
