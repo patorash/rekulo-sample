@@ -13,4 +13,10 @@ class AppComponent {
   final title = 'Tour of Heros';
   Hero hero = new Hero(1, 'Windstrom');
   List<Hero> heros = mockHeroes;
+  Hero selectedHero;
+
+  onSelect(Hero hero) {
+    selectedHero = hero;
+    print(selectedHero.name);
+  }
 }
