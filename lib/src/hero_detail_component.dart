@@ -28,4 +28,8 @@ class HeroDetailComponent implements OnInit {
 
   void goBack() => _location.back();
 
+  Future<Null> save() async {
+    _heroService.update(hero);
+    goBack();
+  }
 }
